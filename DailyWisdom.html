@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Wisdom - 365 Days of Inspiration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .quote-text {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-hover:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <div class="max-w-2xl w-full glass-card p-8 md:p-12 text-center fade-in">
+        <header class="mb-8">
+            <!-- Updated date display area -->
+            <div id="current-date" class="text-lg font-medium tracking-tight opacity-90 mb-1"></div>
+            <h1 class="text-3xl font-bold tracking-tight text-white/70">Daily Wisdom</h1>
+        </header>
+
+        <main class="mb-10">
+            <div class="relative">
+                <span class="absolute -top-6 -left-4 text-6xl opacity-20 font-serif">“</span>
+                <p id="quote-display" class="quote-text text-2xl md:text-4xl leading-relaxed mb-6 italic">
+                    Loading wisdom...
+                </p>
+                <span class="absolute -bottom-10 -right-4 text-6xl opacity-20 font-serif">”</span>
+            </div>
+            <p id="author-display" class="text-lg font-light tracking-wide opacity-90">
+                — Author
+            </p>
+        </main>
+
+        <footer class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
+            <button onclick="copyQuote()" class="btn-hover px-6 py-2 rounded-full border border-white/30 text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+            </button>
+            <button onclick="loadDailyQuote()" class="btn-hover px-6 py-2 rounded-full bg-white text-indigo-900 font-semibold text-sm">
+                Today's Quote
+            </button>
+            <button onclick="getRandomQuote()" class="btn-hover px-6 py-2 rounded-full border border-white/30 text-sm">
+                Surprise Me
+            </button>
+        </footer>
+        
+        <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 rounded-lg text-xs opacity-0 transition-opacity pointer-events-none">
+            Quote copied to clipboard!
+        </div>
+    </div>
+
+    <script>
+        const quotesPool = [
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs" },
+            { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
+            { text: "Stay hungry, stay foolish.", author: "Steve Jobs" },
+            { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+            { text: "Do one thing every day that scares you.", author: "Eleanor Roosevelt" },
+            { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
+            { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { text: "The best way to predict your future is to create it.", author: "Abraham Lincoln" },
+            { text: "In the end, it's not the years in your life that count. It's the life in your years.", author: "Abraham Lincoln" },
+            { text: "Spread love everywhere you go. Let no one ever come to you without leaving happier.", author: "Mother Teresa" },
+            { text: "If you judge people, you have no time to love them.", author: "Mother Teresa" },
+            { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" },
+            { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
+            { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+            { text: "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.", author: "Martin Luther King Jr." },
+            { text: "Injustice anywhere is a threat to justice everywhere.", author: "Martin Luther King Jr." },
+            { text: "The time is always right to do what is right.", author: "Martin Luther King Jr." },
+            { text: "Be the change that you wish to see in the world.", author: "Mahatma Gandhi" },
+            { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+            { text: "Where there is love there is life.", author: "Mahatma Gandhi" },
+            { text: "Imagination is more important than knowledge.", author: "Albert Einstein" },
+            { text: "Life is like riding a bicycle. To keep your balance, you must keep moving.", author: "Albert Einstein" },
+            { text: "Strive not to be a success, but rather to be of value.", author: "Albert Einstein" },
+            { text: "Logic will get you from A to B. Imagination will take you everywhere.", author: "Albert Einstein" },
+            { text: "Well done is better than well said.", author: "Benjamin Franklin" },
+            { text: "Tell me and I forget. Teach me and I remember. Involve me and I learn.", author: "Benjamin Franklin" },
+            { text: "A small leak will sink a great ship.", author: "Benjamin Franklin" },
+            { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+            { text: "All our dreams can come true, if we have the courage to pursue them.", author: "Walt Disney" },
+            { text: "It's kind of fun to do the impossible.", author: "Walt Disney" },
+            { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
+            { text: "The roots of education are bitter, but the fruit is sweet.", author: "Aristotle" },
+            { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle" },
+            { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+            { text: "Happiness is not something readymade. It comes from your own actions.", author: "Dalai Lama" },
+            { text: "Be kind whenever possible. It is always possible.", author: "Dalai Lama" },
+            { text: "Our prime purpose in this life is to help others. And if you can't help them, at least don't hurt them.", author: "Dalai Lama" },
+            { text: "Change your thoughts and you change your world.", author: "Norman Vincent Peale" },
+            { text: "The only journey is the one within.", author: "Rainer Maria Rilke" },
+            { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
+            { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey" },
+            { text: "The more you praise and celebrate your life, the more there is in life to celebrate.", author: "Oprah Winfrey" },
+            { text: "The big secret in life is that there is no big secret. Whatever your goal, you can get there if you're willing to work.", author: "Oprah Winfrey" },
+            { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+            { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
+            { text: "Coming together is a beginning; keeping together is progress; working together is success.", author: "Henry Ford" },
+            { text: "Failure is simply the opportunity to begin again, this time more intelligently.", author: "Henry Ford" },
+            { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison" },
+            { text: "Genius is one percent inspiration and ninety-nine percent perspiration.", author: "Thomas Edison" },
+            { text: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Zig Ziglar" },
+            { text: "Make each day your masterpiece.", author: "John Wooden" },
+            { text: "Dream big and dare to fail.", author: "Norman Vaughan" },
+            { text: "It is never too late to be what you might have been.", author: "George Eliot" },
+            { text: "If you want to lift yourself up, lift up someone else.", author: "Booker T. Washington" },
+            { text: "I would rather die on my feet than live on my knees.", author: "Emiliano Zapata" },
+            { text: "Tough times never last, but tough people do.", author: "Robert H. Schuller" },
+            { text: "Keep your face always toward the sunshine—and shadows will fall behind you.", author: "Walt Whitman" },
+            { text: "The power of imagination makes us infinite.", author: "John Muir" },
+            { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+            { text: "Everything is going to be okay in the end. If it's not okay, it's not the end.", author: "John Lennon" },
+            { text: "Peace begins with a smile.", author: "Mother Teresa" },
+	    {  text:  "積極的態度會帶來積極的結果，因為態度是具有感染力的。", author: "吉格．金克拉（Zig Ziglar） 美國著名勵志作家" },
+	    {  text:  "觀自在菩薩，行深般若波羅蜜多時，照見五蘊皆空，度一切苦厄。", author: "般若波羅蜜多心經" },
+  { text: "事情在好起來之前，總會變得更壞。經歷這個過程後，請記住誰把你拖下水，又是誰把你拉上岸。", author: "佚名（Anonymous）" },
+  { text: "嘗試做一些你不精通的事，否則你永遠不會成長。", author: "拉爾夫．沃爾多．愛默生（Ralph Emerson）美國文學家" },
+  { text: "嘗試一些事，遭遇失敗後從中學習，比你什麼事都不做更好。", author: "馬克．佐克伯（Mark Elliot Zuckerberg）Facebook創辦人" },
+  { text: "走得多慢都無所謂，只要你不停下腳步。", author: "安迪．沃荷（Andy Warhol）美國藝術家" },
+  { text: "不要因為覺得自己做不到，就放棄一件事！", author: "昌達．科赫哈（Chanda Kochhar）ICICI 執行長" },
+  { text: "如果你希望周遭環境改變，答案或許是從「改變自己」開始。", author: "諾曼．文森特．皮爾（Norman Vincent Peale）美國牧師、作家" },
+  { text: "我們無法讓壞事不發生，卻能努力讓它不影響我們！", author: "珍妮佛．雪拉德．勞倫斯（Jennifer Shrader Lawrence）美國女演員" },
+  { text: "聰明是一種天賦，而善良是一種選擇。", author: "傑夫．貝佐斯（Jeff Bezos）亞馬遜（Amazon.com）創辦人" },
+  { text: "寧願失敗地做你喜愛的事情，也不要成功地做你討厭的事情。", author: "喬治．伯恩斯（George Burns）美國喜劇演員" },
+  { text: "每個人都是天才。但如果你用爬樹的能力評斷一條魚，它將終其一生覺得自己是個笨蛋。", author: "亞伯特．愛因斯坦（Albert Einstein）相對論之父" },
+  { text: "如果你能鼓舞別人擁有更多的夢想、學習更多、行動更多及改變更多，你就是一位領導者。", author: "西蒙．斯涅克（Simon Sinek）勵志演說家" },
+  { text: "若你有幸成功，就有責任拉下面的人一把！", author: "凱文．史貝西（Kevin Spacey）美國演員及導演" },
+  { text: "成功，就是不斷地練習基本動作！", author: "吉米．隆（Jim Rohn）成功哲學大師" },
+  { text: "成功牽涉到很多因素。我不喜歡只做我喜歡做的事，我喜歡做能讓公司成功的事。", author: "麥可．戴爾（Michael Dell）戴爾電腦創辦人" },
+  { text: "不要因為怕辛苦，就拒絕一個想法、夢想或目標，成功通常伴隨著辛苦。Never reject an idea, dream or goal because it will be hard work. Success rarely comes without it.", author: "包柏．普克特（Bob Proctor）暢銷書作家" },
+  { text: "當你真心渴望某件事，整個宇宙都會聯合起來幫助你完成。", author: "保羅．科爾賀（Paulo Coelho）巴西著名作家" },
+  { text: "唯有那些異想天開的人，才能完成不可能的事。", author: "亞伯特．愛因斯坦（Albert Einstein）相對論之父" },
+  { text: "我不想讓旁人決定我是誰，我要為自己做決定。", author: "艾瑪．華森（Emma Watson）女演員、模特兒、社會活動家" },
+  { text: "不要一心想要成功，而是要成為一個有價值的人。", author: "亞伯特．愛因斯坦（Albert Einstein）相對論之父" },
+  { text: "別在乎別人做什麼；做得比自己好，每天突破自己的紀錄，你就是一位成功者！", author: "威廉．博克（William John Henry Boetcker）牧師" },
+  { text: "如果别人朝你扔石頭，不要扔回去，留著做你建樓高的基石吧。 If they throw stones at you, don't throw back, use them to build your own foundation instead.", author: "佚名（Anonymous）" },
+  { text: "如果你對每隻向你吠的狗，都停下來扔石頭，你永遠到不了目的地。 You will never reach your destination if you stop and throw stones at every dog that barks.", author: "溫斯頓．邱吉爾（Winston Churchill），前英國首相" },
+  { text: "寧可讓人討厭真實的你，也好過讓別人愛上虛偽的自己。 It is better to be hated for what you are than to be loved for what you are not.", author: "安德烈．紀德（André Gide）， 法國諾貝爾文學獎得主" },
+  { text: "學習只有兩種途徑：一個是閱讀，另一個是與更聰明的人為伍。 A man only learns in two ways, one by reading, and the other by association with smarter people.", author: "威爾．羅傑（Will Rogers），美國知名牛仔" },
+  { text: "如果你只讀每個人都在讀的書，你也只能想到每個人都能想到的事。", author: "未知作者" },
+  { text: "If you only read the books that everyone else is reading, you can only think what everyone else is thinking.", author: "村上春樹，日本知名作家" },
+  { text: "如果你在小事上缺乏紀律，在大事上也會一樣。 If you let yourself be undisciplined on the small things, you will probably be undisciplined on the large things as well.", author: "華倫．巴菲特（Warren Buffett, Investor），美國企業家" },
+  { text: "我讓懶惰的人去做困難的工作，因為懶人能找到做這件事情的簡單方法。 I choose a lazy person to do a hard job, because a lazy person will find an easy way to do it.", author: "比爾．蓋茲（Bill Gates）， 微軟創辦人" },
+  { text: "騰不出時間娛樂的人，早晚會被迫騰出時間生病。 People who cannot find time for recreation are obliged sooner or later to find time for illness.", author: "約翰．沃納梅克（John Wanamaker），美國商人、百貨商店之父" },
+  { text: "與其思考下次放假是什麼時候，或許你該思考，如何創造一個不會想要逃離的生活。 Instead of wondering when your next vacation is, you ought to set up a life you don’t need to escape from.", author: "賽斯．高汀（Seth Godin），美國創業家" },
+  { text: "很多人一開始為了夢想而忙，後來忙得忘了夢想。 Many people start a career with a dream, then get busy forgetting it.", author: "佚名（Anonymous）" },
+  { text: "如果你想得到從未擁有的東西，你就得去做從未做過的事。 If you want something you have never had, you must be willing to do something you have never done.", author: "湯瑪斯．傑佛遜（Thomas Jefferson），美國開國元勛" },
+  { text: "爬上山頂並不是為了讓全世界看到你，而是讓你看到整個世界。 Climb mountains not so the world can see you, but so you can see the world.", author: "佚名（Anonymous）" },
+  { text: "成功，不是你所站的位置，而是你要去的方向。 Success, it is not the position where you are standing, but which direction you are going.", author: "小奧利弗．溫德爾．霍姆斯（Oliver Wendell Holmes），前美國最高法院大法官" },
+  { text: "強者，強在將人舉起，而非把人壓下。 Strong people don't put others down; they lift them up.", author: "邁克爾．沃森（Michael P., Watson），英國拳擊手" },
+  { text: "對付壓力最好的武器，就是「轉念」。 The greatest weapon against stress is our ability to choose one thought over another.", author: "威廉．詹姆士（William James），美國哲學與心理學家" },
+  { text: "抱怨是貧窮的心態，別抱怨不好的事，對好的事心存感恩。 Complaining is poverty. Instead of complaining about what’s wrong, be grateful for what’s right.", author: "扎卡里．費雪（Zachary Fisher），慈善家" },
+  { text: "一個真正快樂的人，是那種即使繞道而行也不忘享受風景的人。 A truly happy person is one who can enjoy the scenery while on a detour.", author: "佚名（Anonymous）" },
+  { text: "有人曾問我長大想做什麼，我寫下「快樂」，他們說我沒聽懂問題，我說他們不懂人生。 They asked me what I wanted to be when I grew up. I wrote down ‘happy.’ They told me I didn’t understand the assignment, and I told them they didn’t understand life.", author: "約翰．藍儂（John Lennon），英國音樂人" },
+  { text: "悲觀者抱怨風向，樂觀者期待風向改變，務實的人調整船帆。The pessimist complains about the wind; the optimist expects it to change; the realist adjusts the sails.", author: "威廉．沃德 (William Ward)" },
+  { text: "心胸遠大者激盪想法，資質平庸者討論事情，心胸狹窄者道人是非。Great minds discuss ideas; average minds discuss events; small minds discuss people.", author: "愛蓮娜．羅斯福 (Eleanor Roosevelt)" },
+  { text: "生活沒有意義，就不可能有美好人生；工作沒有意義，就很難過著有意義的生活。It is impossible to have a great life unless it is a meaningful life. And it is very difficult to have a meaningful life without meaningful work.", author: "吉姆．柯林斯 (Jim Collins)" },
+  { text: "生活的方式有兩種：一種是當世界沒有任何奇蹟，另一種是當每件事都是奇蹟。There are only two ways to live your life. One is as though nothing is a miracle. The other is as though everything is a miracle.", author: "亞伯特．愛因斯坦 (Albert Einstein)" },
+  { text: "當工作是一種樂趣，生活就是一種享受！當工作是一種義務，生活就被奴役了。When work is a pleasure, life is a joy! When work is a duty, life is slavery.", author: "馬克西姆．高爾基 (Maxim Gorky)" },
+  { text: "人學走路時，從來不是靠規矩，而是從嘗試與跌倒之中學習。You don't learn to walk by following rules. You learn by doing, and by falling over.", author: "理查．布蘭森 (Richard Branson)" },
+  { text: "生活不在於等待暴風雨過去，而是學會在雨中跳舞。Life isn't about waiting for the storm to pass... It's about learning to dance in the rain.", author: "薇薇安．格林 (Vivien Greene)" },
+  { text: "我認為目標不該唾手可得，它們應該要逼著你去努力，即使當下令人難受。I think goals should never be easy, they should force you to work, even if they are uncomfortable at the time.", author: "麥可．菲爾普斯 (Michael Phelps)" },
+  { text: "我們不應指望海水變得平靜，要學會在強風之下繼續航行。We must free ourselves of the hope that the sea will ever rest. We must learn to sail in high winds.", author: "亞里士多德．歐納西斯 (Aristotle Onassis)" },
+  { text: "命運給予我們的不是失望之酒，而是機會之杯。Destiny offers not the cup of despair, but the chalice of opportunity.", author: "理查．尼克森 (Richard Nixon)" },
+  { text: "世界上最美的事物，看不見也摸不著，必須用心來感受。The best and most beautiful things in the world cannot be seen or even touched", author: "they must be felt with the heart." },
+  { text: "生命固然短暫，但漫不經心地浪費，將使生命更為短暫。Life is short, but to waste it carelessly makes it shorter.", author: "維克多．雨果 (Victor Hugo)" },
+  { text: "心智如同胃腸，重要的不是放進去多少，而是消化了多少。The mind is like the stomach. It is not how much you put into it that counts, but how much it digests.", author: "艾爾伯特．諾克 (Albert Nock)" },
+  { text: "人生，近看是一場悲劇，遠觀卻是一齣喜劇。Life is a tragedy when seen in close-up, but a comedy in long-shot.", author: "查理．卓別林 (Charlie Chaplin)" },
+  { text: "挫折不是最大的失敗。真正的失敗是你從未嘗試過。Defeat is not the worst of failures. Not to have tried is the true failure.", author: "喬治．伍德貝利 (George Woodberry)" },
+  { text: "夢想是等待實現的現實。勇敢踏入你的夢想, 享受隨之而來的所有冒險。Dreams are realities waiting to happen. Step boldly into yours and enjoy all the adventures which follow.", author: "John Strelecky" },
+  { text: "根本就沒有食神......或者人人都是食神......老爸老媽、大哥小妹、男孩女孩，只要有心，人人都是食神！", author: "Stephen Chau" },
+
+  ];
+
+        const quoteEl = document.getElementById('quote-display');
+        const authorEl = document.getElementById('author-display');
+        const dateEl = document.getElementById('current-date');
+        const toast = document.getElementById('toast');
+
+        function getDayOfYear() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.floor(diff / oneDay);
+        }
+
+        function updateDisplay(quote) {
+            quoteEl.parentElement.classList.remove('fade-in');
+            void quoteEl.offsetWidth; 
+            quoteEl.parentElement.classList.add('fade-in');
+
+            quoteEl.innerText = quote.text;
+            authorEl.innerText = `— ${quote.author}`;
+        }
+
+        function loadDailyQuote() {
+            const dayIndex = getDayOfYear();
+            const quote = quotesPool[dayIndex % quotesPool.length];
+            updateDisplay(quote);
+            
+            // Explicitly formatting to show Day of Week + Full Date
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            dateEl.innerText = new Date().toLocaleDateString(undefined, options);
+        }
+
+        function getRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotesPool.length);
+            const quote = quotesPool[randomIndex];
+            updateDisplay(quote);
+            dateEl.innerText = "Momentary Inspiration";
+        }
+
+        function copyQuote() {
+            const text = `"${quoteEl.innerText}" ${authorEl.innerText}`;
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+
+        window.onload = loadDailyQuote;
+    </script>
+</body>
+</html>
