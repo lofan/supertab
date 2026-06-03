@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>href → li Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f11;
+    --surface: #18181c;
+    --surface2: #222228;
+    --border: #2e2e38;
+    --accent: #7c6af7;
+    --accent-dim: #3d3480;
+    --accent-glow: rgba(124,106,247,0.18);
+    --text: #e8e6f0;
+    --muted: #7a7890;
+    --success: #3ecf8e;
+    --danger: #f97171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #c4beff 0%, var(--accent) 60%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: var(--mono);
+  }
+
+  .card {
+    width: 100%;
+    max-width: 980px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pane {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pane + .pane {
+    border-left: 1px solid var(--border);
+  }
+
+  .pane-header {
+    padding: 14px 18px;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-in  { background: #f97171; }
+  .dot-out { background: var(--success); }
+
+  textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text);
+    padding: 16px 18px;
+    line-height: 1.75;
+    min-height: 280px;
+  }
+
+  textarea::placeholder { color: var(--muted); opacity: 0.6; }
+
+  .toolbar {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: #9180ff; border-color: #9180ff; box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: #555; background: var(--surface2); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border-color: rgba(249,113,113,0.3);
+  }
+  .btn-danger:hover { background: rgba(249,113,113,0.1); border-color: var(--danger); }
+
+  #statusMsg {
+    font-size: 12px;
+    font-family: var(--mono);
+    margin-left: auto;
+    padding: 5px 10px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  #statusMsg.show { opacity: 1; }
+  #statusMsg.ok   { color: var(--success); background: rgba(62,207,142,0.1); }
+  #statusMsg.err  { color: var(--danger);  background: rgba(249,113,113,0.1); }
+  #statusMsg.info { color: var(--accent);  background: var(--accent-glow); }
+
+  .preview-section {
+    border-top: 1px solid var(--border);
+  }
+
+  .preview-header {
+    padding: 12px 18px;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #previewList {
+    list-style: none;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 52px;
+  }
+
+  #previewList li a {
+    font-size: 13px;
+    color: #9180ff;
+    text-decoration: none;
+    font-family: var(--mono);
+    line-height: 1.5;
+    display: block;
+    word-break: break-all;
+  }
+  #previewList li a:hover { text-decoration: underline; color: #c4beff; }
+
+  #previewList .empty {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  #countBadge {
+    background: var(--accent-dim);
+    color: #c4beff;
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: auto;
+  }
+
+  svg.icon { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -2px; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .pane + .pane { border-left: none; border-top: 1px solid var(--border); }
+    header h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>href → li Converter</h1>
+  <p>paste &lt;a href&gt; lines · get styled &lt;li&gt; output instantly</p>
+</header>
+
+<div class="card">
+
+  <div class="grid">
+
+    <div class="pane">
+      <div class="pane-header">
+        <span class="dot dot-in"></span>
+        input — &lt;a href&gt; lines
+      </div>
+      <textarea id="inputArea" placeholder='<a href="https://www.youtube.com/watch?v=abc">Video title here</a>&#10;<a href="https://example.com">Another link</a>'></textarea>
+    </div>
+
+    <div class="pane">
+      <div class="pane-header">
+        <span class="dot dot-out"></span>
+        output — &lt;li&gt; lines
+      </div>
+      <textarea id="outputArea" readonly placeholder="Converted output will appear here…"></textarea>
+    </div>
+
+  </div>
+
+  <div class="toolbar">
+    <button class="btn-primary" onclick="convert()">
+      <svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Convert
+    </button>
+    <button class="btn-ghost" onclick="copyOutput()">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy output
+    </button>
+    <button class="btn-danger" onclick="resetAll()">
+      <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Reset fields
+    </button>
+    <span id="statusMsg"></span>
+  </div>
+
+  <div class="preview-section">
+    <div class="preview-header">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      live preview
+      <span id="countBadge" style="display:none;"></span>
+    </div>
+    <ul id="previewList">
+      <li class="empty">Converted links will appear here…</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+const LI_CLASS = 'class="text-blue-600 dark:text-blue-400 font-semibold hover:underline"';
+
+function parseAnchors(text) {
+  const results = [];
+  const re = /<a\s+([^>]*)>([\s\S]*?)<\/a>/gi;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const attrs = m[1];
+    const label = m[2].replace(/\s+/g, ' ').trim();
+    const hrefMatch = attrs.match(/href=["']([^"']*)["']/i);
+    if (hrefMatch) results.push({ href: hrefMatch[1], label });
+  }
+  return results;
+}
+
+function buildLi({ href, label }) {
+  const esc = label.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<li><a href="${href}" target="_blank" ${LI_CLASS}>${esc}</a></li>`;
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+function convert() {
+  const input = document.getElementById('inputArea').value.trim();
+  if (!input) { showStatus('Paste some <a> tags first.', 'err'); return; }
+
+  const items = parseAnchors(input);
+  if (!items.length) {
+    showStatus('No valid <a href="..."> tags found.', 'err');
+    document.getElementById('outputArea').value = '';
+    document.getElementById('previewList').innerHTML = '<li class="empty">Nothing found.</li>';
+    document.getElementById('countBadge').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('outputArea').value = items.map(buildLi).join('\n');
+
+  const preview = document.getElementById('previewList');
+  preview.innerHTML = items.map(i =>
+    `<li><a href="${i.href}" target="_blank">${i.label}</a></li>`
+  ).join('');
+
+  const badge = document.getElementById('countBadge');
+  badge.textContent = items.length + ' link' + (items.length > 1 ? 's' : '');
+  badge.style.display = 'inline';
+
+  showStatus(`${items.length} link${items.length > 1 ? 's' : ''} converted.`, 'ok');
+}
+
+function copyOutput() {
+  const val = document.getElementById('outputArea').value;
+  if (!val) { showStatus('Nothing to copy yet.', 'err'); return; }
+  navigator.clipboard.writeText(val)
+    .then(() => showStatus('Copied to clipboard!', 'ok'))
+    .catch(() => showStatus('Copy failed — select manually.', 'err'));
+}
+
+function resetAll() {
+  document.getElementById('inputArea').value = '';
+  document.getElementById('outputArea').value = '';
+  document.getElementById('previewList').innerHTML = '<li class="empty">Converted links will appear here…</li>';
+  document.getElementById('countBadge').style.display = 'none';
+  showStatus('All fields reset.', 'info');
+}
+</script>
+
+</body>
+</html>
